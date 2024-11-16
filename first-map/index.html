@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display a map on a webpage</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%;}
+    #menu {
+        background: #fff;
+        position: absolute;
+        z-index: 1;
+        top: 10px;
+        right: 10px;
+        border-radius: 3px;
+        width: 120px;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    #menu a {
+        font-size: 13px;
+        color: #404040;
+        display: block;
+        margin: 0;
+        padding: 0;
+        padding: 10px;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+        text-align: center;
+    }
+
+    #menu a:last-child {
+        border: none;
+    }
+
+    #menu a:hover {
+        background-color: #f8f8f8;
+        color: #404040;
+    }
+
+    #menu a.active {
+        background-color: #a4a4a4;
+        color: #ffffff;
+    }
+
+    #menu a.active:hover {
+        background: #a4a4a4;
+    }
+
+    .map-overlay {
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        position: absolute;
+        z-index: 1;
+        left: 20px;
+        width: 25%;
+        top: 0;
+        left: 0;
+        padding: 10px;
+    }
+
+    .map-overlay .map-overlay-inner {
+        background-color: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .map-overlay h2 {
+        line-height: 24px;
+        display: block;
+        margin: 0 0 10px;
+    }
+
+    .map-overlay input {
+        background-color: transparent;
+        display: inline-block;
+        width: 100%;
+        position: relative;
+        margin: 0;
+        cursor: ew-resize;
+    }
+
+</style>
+
+</head>
+<body>
+    <nav id="menu"></nav>
+    <div id="map"></div>
+    <div class="map-overlay top"></div>
+        <div class="map-overlay-inner">
+            <h2>Turbiinien rakennusvuosi</h2>
+            <label id="year"></label>
+            <input id="slider" type="range" min="2013" max="2023" step="1" value="2013">
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoibGF1cmFrb2l2dWtvc2tpIiwiYSI6ImNtM2N3YTNwbzF1eTMybHNlenBhaW1xcjQifQ.88ECZRZjfcCGNwDWjUFLPA';
+
+        const map = new mapboxgl.Map({
+            container: 'map', // container ID
+            style: 'mapbox://styles/mapbox/streets-v11', // karttatyyli
+            center: [24.208605, 62.066155], // starting position [lng, lat]
+            zoom: 5 // starting zoom
+        });
+
+        // Lisää lähde ja tarkista polku GeoJSON-tiedostoon
+        map.on('load', () => {
+
+            // Ensimmäinen taso - syksy
+            map.addSource('kevat', {
+                type: 'geojson',
+                data: 'data/kevat.geojson', // tarkista polku
+            });
+
+            map.addSource('id1', {
+                type: 'geojson',
+                data: {
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -76.53063297271729,
+                                39.18174077994108
+                            ]
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                id: 'kevat-fill',
+                type: 'fill',
+                source: 'kevat',
+                paint: {
+                    'fill-color': '#f7a74d',
+                    'fill-opacity': 0.5
+                }
+            });
+            
+            // toinen taso
+            map.addSource('kevato', {
+                type: 'geojson',
+                data: 'data/kevato.geojson', // tarkista polku
+            });
+
+            map.addSource('id2', {
+                type: 'geojson',
+                data: {
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -76.53063297271729,
+                                39.18174077994108
+                            ]
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                id: 'kevato-fill',
+                type: 'fill',
+                source: 'kevato',
+                paint: {
+                    'fill-color': '#65bd51',
+                    'fill-opacity': 0.5
+                }
+            });
+
+            // kolmas taso - finiba
+            map.addSource('finiba', {
+                type: 'geojson',
+                data: 'data/finiba.geojson', // tarkista polku
+            });
+
+            map.addSource('some', {
+                type: 'geojson',
+                data: {
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -76.53063297271729,
+                                39.18174077994108
+                            ]
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                id: 'finiba-fill',
+                type: 'fill',
+                source: 'finiba',
+                paint: {
+                    'fill-color': '#0f4720',
+                    'fill-opacity': 0.5
+                }
+            });
+
+            // neljäs taso - nykyiset tuulivoimalat
+            map.addSource('current_turbines', {
+                type: 'geojson',
+                data: 'data/current_turbines.geojson', // tarkista polku
+            });
+
+            map.addSource('id4', {
+                type: 'geojson',
+                data: {
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -76.53063297271729,
+                                39.18174077994108
+                            ]
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                id: 'current_turbines-fill',
+                type: 'fill',
+                source: 'current_turbines',
+                paint: {
+                    'fill-color': '#f76f34',
+                    'fill-opacity': 0.5
+                }
+            });
+
+            // viides taso - future areas
+            map.addSource('future_areas', {
+                type: 'geojson',
+                data: 'data/future_areas.geojson', // tarkista polku
+            });
+
+            map.addSource('id5', {
+                type: 'geojson',
+                data: {
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -76.53063297271729,
+                                39.18174077994108
+                            ]
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                id: 'future_areas-fill',
+                type: 'fill',
+                source: 'future_areas',
+                paint: {
+                    'fill-color': 'purple',
+                    'fill-opacity': 0.5
+                }
+            });
+
+
+            // kuudes taso - future turbines
+            map.addSource('future_turbines', {
+                type: 'geojson',
+                data: 'data/future_turbines.geojson', // tarkista polku
+            });
+
+            map.addSource('id6', {
+                type: 'geojson',
+                data: {
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -76.53063297271729,
+                                39.18174077994108
+                            ]
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                id: 'future_turbines-fill',
+                type: 'fill',
+                source: 'future_turbines',
+                paint: {
+                    'fill-color': 'pink',
+                    'fill-opacity': 0.5
+                }
+            });
+
+            // seitsemäs taso - saartennokka
+            map.addSource('saartennokka', {
+                type: 'geojson',
+                data: 'data/saartennokka.geojson', // tarkista polku
+            });
+
+            map.addSource('id7', {
+                type: 'geojson',
+                data: {
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -76.53063297271729,
+                                39.18174077994108
+                            ]
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                id: 'saartennokka-fill',
+                type: 'fill',
+                source: 'saartennokka',
+                paint: {
+                    'fill-color': 'orange',
+                    'fill-opacity': 0.5
+                }
+            });
+
+    // Add zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl());
+        });
+
+
+    function filterBy(year) {
+        // Kumuloituva suodatus: näytä kaikki kohteet vuodesta 2013 nykyiseen vuoteen asti
+        const filters = ['all', ['>=', ['get', 'rakennusv'], 2013], ['<=', ['get', 'rakennusv'], year]];
+        map.setFilter('current_turbines-fill', filters);
+        document.getElementById('year').textContent = year;
+    }
+
+    map.on('load', () => {
+        // Ladataan turbiinidata
+        d3.json('data/current_turbines.geojson', (err, data) => {
+            if (err) throw err;
+
+            map.addSource('current_turbines', {
+                'type': 'geojson',
+                data: data
+            });
+
+            map.addLayer({
+                'id': 'current_turbines-fill',
+                'type': 'circle',
+                'source': 'current_turbines',
+                'paint': {
+                    'circle-color': 'blue',
+                    'circle-opacity': 0.6,
+                    'circle-radius': 5
+                }
+            });
+
+            // Asetetaan oletusfilteri vuodelle 2013
+            filterBy(2013);
+
+            document.getElementById('slider').addEventListener('input', (e) => {
+                const year = parseInt(e.target.value, 10);
+                filterBy(year);
+            });
+        });
+    });
+
+    // After the last frame rendered before the map enters an "idle" state.
+    map.on('idle', () => {
+        // If these layers were not added to the map, abort
+        if (!map.getLayer('current_turbines-fill') || !map.getLayer('finiba-fill') || !map.getLayer('future_areas-fill') || !map.getLayer('future_turbines-fill') || !map.getLayer('kevat-fill') || !map.getLayer('kevato-fill') || !map.getLayer('saartennokka-fill')) {
+            return;
+        }
+
+        // Enumerate ids of the layers.
+        const toggleableLayerIds = ['kevat-fill', 'kevato-fill', 'finiba-fill', 'current_turbines-fill', 'future_areas-fill', 'future_turbines-fill','saartennokka-fill'];
+
+        // Set up the corresponding toggle button for each layer.
+        for (const id of toggleableLayerIds) {
+            // Skip layers that already have a button set up.
+            if (document.getElementById(id)) {
+                continue;
+            }
+
+            const layerNames = {
+                'kevat-fill': 'Autumn',
+                'kevato-fill': 'Spring',
+                'finiba-fill': 'Finnish Important Bird Areas',
+                'current_turbines-fill': 'Current turbines',
+                'future_areas-fill': 'Future areas',
+                'future_turbines-fill': 'Future turbines',
+                'saartennokka-fill': 'Saartennokka'
+            };
+
+            // Create a link.
+            const link = document.createElement('a');
+            link.id = id;
+            link.href = '#';
+            link.textContent = layerNames[id];
+            link.className = 'active';
+
+            // Show or hide layer when the toggle is clicked.
+            link.onclick = function (e) {
+                const clickedLayer = id;
+                e.preventDefault();
+                e.stopPropagation();
+
+                const visibility = map.getLayoutProperty(
+                    clickedLayer,
+                    'visibility'
+                );
+
+                // Toggle layer visibility by changing the layout object's visibility property.
+                if (visibility === 'visible') {
+                    map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+                    this.className = '';
+                } else {
+                    this.className = 'active';
+                    map.setLayoutProperty(
+                        clickedLayer,
+                        'visibility',
+                        'visible'
+                    );
+                }
+            };
+
+            const layers = document.getElementById('menu');
+            layers.appendChild(link);
+        }
+    });
+
+    </script>
+</body>
+
+</html>

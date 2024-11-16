@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Interactive Wind Turbines Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <link
+    href="https://api.tiles.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"
+    rel="stylesheet"
+
+  />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    #console {
+      position: absolute;
+      margin: 10px;
+      width: 230px;
+      background-color: rgba(255, 255, 255, 1);
+      padding: 10px 20px;
+      z-index: 2; /* Nostetaan z-index korkealle */
+      border-radius: 2px;
+    }
+
+    #console h1 {
+        font-size: 18px;  /* Pienennä fontin kokoa halutuksi */
+    }
+
+    #console h2 {
+        font-size: 16px;  /* Pienennä fontin kokoa halutuksi */
+    }
+
+
+    #menu {
+      position: absolute;
+      margin: 10px;
+      top: 200px; /* Lasketaan valikko alemmas, ettei se mene liukusäätimen päälle */
+      width: 230px;
+      background-color: white;
+      padding: 10px 20px;
+      z-index: 1;
+      border-radius: 2px;
+    }
+
+    .menu a {
+      display: block;
+      color: #000000;
+      text-decoration: none;
+      font-size: 14px;
+      line-height: 22px;
+      font-weight: 700;
+    }
+
+    .menu a:hover {
+      color: #ff7200;
+    }
+
+    .menu a.active {
+      color: #ff7200;
+    }
+
+    #slider {
+      width: 100%; /* Varmistaa, että liukusäädin täyttää tilan */
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div id="console">
+    <h1>Wind Turbine Impact Zones on Cranes</h1>
+    <p>Current wind turbines built per year</p>
+    <div>
+      <h2>Year: <label id="active-year">2013</label></h2>
+      <input
+        id="slider"
+        type="range"
+        min="2013"
+        max="2024"
+        step="1"
+        value="2013"
+      />
+    </div>
+  </div>
+  <div id="menu" class="menu"></div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGF1cmFrb2l2dWtvc2tpIiwiYSI6ImNtM2N3YTNwbzF1eTMybHNlenBhaW1xcjQifQ.88ECZRZjfcCGNwDWjUFLPA';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11', // karttatyyli
+      center: [24.208605, 63.066155],
+      zoom: 5
+    });
+
+    map.on('load', () => {
+      // Initialize the filter for the year
+      let filterYear = ['<=', ['get', 'rakennusv'], 2013];
+
+      // Add the GeoJSON source for turbines
+      map.addSource('nykyiset', {
+        type: 'geojson',
+        data: 'data/nykyiset.geojson' 
+      });
+
+      // Add the turbines layer
+      map.addLayer({
+        id: 'nykyiset',
+        type: 'fill',
+        source: 'nykyiset',
+        paint: {
+          'fill-color': '#007cbf',
+          'fill-opacity': 0.5
+        },
+        filter: filterYear
+      });
+
+      // Update the year filter when the slider is moved
+      document.getElementById('slider').addEventListener('input', (event) => {
+        const year = parseInt(event.target.value);
+        filterYear = ['<=', ['get', 'rakennusv'], year];
+        map.setFilter('nykyiset', filterYear);
+
+        // Update the year label
+        document.getElementById('active-year').innerText = year;
+      });
+
+      // Add additional layers
+
+      map.addSource('kevat', {
+        type: 'geojson',
+        data: 'data/kevat.geojson',
+      });
+      map.addLayer({
+        id: 'kevat-fill',
+        type: 'fill',
+        source: 'kevat',
+        paint: {
+          'fill-color': '#65bd51',
+          'fill-opacity': 0.5,
+        },
+
+      });
+
+      map.addSource('syksy', {
+        type: 'geojson',
+        data: 'data/syksy.geojson',
+      });
+      map.addLayer({
+        id: 'syksy-fill',
+        type: 'fill',
+        source: 'syksy',
+        paint: {
+          'fill-color': '#f7a74d',
+          'fill-opacity': 0.5,
+        },
+        layout: {
+            visibility: 'none'
+        }
+      });
+
+      map.addSource('finiba', {
+        type: 'geojson',
+        data: 'data/finiba.geojson',
+      });
+      map.addLayer({
+        id: 'finiba-fill',
+        type: 'fill',
+        source: 'finiba',
+        paint: {
+          'fill-color': '#0f4720',
+          'fill-opacity': 0.5,
+        },
+        layout: {
+            visibility: 'none'
+        }
+      });
+
+      map.addSource('tulevat', {
+        type: 'geojson',
+        data: 'data/tulevat.geojson',
+      });
+      map.addLayer({
+        id: 'tulevat-fill',
+        type: 'fill',
+        source: 'tulevat',
+        paint: {
+          'fill-color': '#e15914',
+          'fill-opacity': 0.5,
+        },
+      });
+
+    // Move the turbines layer to the top to make it visible above all others
+    map.moveLayer('nykyiset');
+
+      // Toggle layer visibility
+      const toggleableLayerIds = ['kevat-fill', 'syksy-fill', 'finiba-fill', 'tulevat-fill'];
+
+      for (const id of toggleableLayerIds) {
+        const layerNames = {
+          'kevat-fill': 'Spring migration route of cranes',
+          'syksy-fill': 'Autumn migration route of cranes',
+          'finiba-fill': 'Finnish Important Bird Areas',
+          'tulevat-fill': 'Future wind power areas'
+        };
+
+        const link = document.createElement('a');
+        link.id = id;
+        link.href = '#';
+        link.textContent = layerNames[id];
+        link.className = 'active';
+
+        link.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const visibility = map.getLayoutProperty(id, 'visibility');
+
+          if (visibility === 'visible') {
+            map.setLayoutProperty(id, 'visibility', 'none');
+            this.className = '';
+          } else {
+            this.className = 'active';
+            map.setLayoutProperty(id, 'visibility', 'visible');
+          }
+        };
+
+        document.getElementById('menu').appendChild(link);
+      }
+
+      // Add navigation controls
+      map.addControl(new mapboxgl.NavigationControl());
+    });
+  </script>
+</body>
+</html>
