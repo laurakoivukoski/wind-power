@@ -43,10 +43,47 @@
     }
 
 
+    #info-button {
+      position: absolute;
+      top: 120px;
+      right: 8px;
+      background-color: #fff;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 18px;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      color: #000000;
+      border: 1px solid #000000;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    #info-box {
+      display: none; /* Piilotetaan oletuksena */
+      position: absolute;
+      top: 50px;
+      right: 40px;
+      width: 250px;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      z-index: 10;
+    }
+
+    #info-box p {
+      margin: 0;
+      font-size: 14px;
+      color: #333;
+    }
+
     #menu {
       position: absolute;
       margin: 10px;
-      top: 200px; /* Lasketaan valikko alemmas, ettei se mene liukusäätimen päälle */
+      top: 190px; /* Lasketaan valikko alemmas, ettei se mene liukusäätimen päälle */
       width: 230px;
       background-color: white;
       padding: 10px 20px;
@@ -82,7 +119,7 @@
   <div id="map"></div>
   <div id="console">
     <h1>Wind Turbine Impact Zones on Cranes</h1>
-    <p>Current wind turbines built per year</p>
+    <p>Current wind turbines</p>
     <div>
       <h2>Year: <label id="active-year">2013</label></h2>
       <input
@@ -96,6 +133,25 @@
     </div>
   </div>
   <div id="menu" class="menu"></div>
+
+    <!-- Info button -->
+    <div id="info-button">i</div>
+
+    <!-- Info box -->
+    <div id="info-box">
+      <h3>About This Map</h3>
+      <p>
+          The rapid increase in wind turbines, driven by the global shift towards green energy, supports sustainable energy production but may challenge biodiversity, particularly birdlife. 
+          Cranes, which avoid areas within a 5 km radius of turbines, are notably affected.
+          This map illustrates current and projected areas impacted by wind farms in Finland, highlighting overlaps with crane migration routes and important bird areas (FINIBA). 
+          These overlaps reveal potential conflicts between green energy initiatives and local ecosystems.
+      </p>
+      <p>
+          The data sources used are openly accessible and cited on the map. The map was created using Mapbox and serves as a tool for policy makers when planning new wind power areas.
+          Users can interact with the map by using the time slider to explore changes over time and selecting different layers to examine the areas of overlap.
+      </p>
+    </div>
+
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoibGF1cmFrb2l2dWtvc2tpIiwiYSI6ImNtM2N3YTNwbzF1eTMybHNlenBhaW1xcjQifQ.88ECZRZjfcCGNwDWjUFLPA';
     const map = new mapboxgl.Map({
@@ -103,6 +159,17 @@
       style: 'mapbox://styles/mapbox/streets-v11', // karttatyyli
       center: [24.208605, 63.066155],
       zoom: 5
+    });
+
+    // Info button functionality
+    const infoButton = document.getElementById('info-button');
+    const infoBox = document.getElementById('info-box');
+
+    infoButton.addEventListener('mouseover', () => {
+        infoBox.style.display = 'block';
+    });
+    infoButton.addEventListener('mouseout', () => {
+        infoBox.style.display = 'none';
     });
 
     map.on('load', () => {
