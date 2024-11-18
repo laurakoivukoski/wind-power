@@ -140,7 +140,7 @@
         This web map explores the impact of wind energy production on cranes in Finland. While wind turbines support sustainable energy, they can challenge biodiversity, particularly birdlife. 
         Cranes avoid areas within 5 km of turbines, making them especially vulnerable. The map shows the current and projected wind power areas, overlaps with crane migration routes, and key bird areas (FINIBA).
       </p>
-      <p>
+      <p style="margin-top: 15px;">
         This map serves a tool for policy makers when planning new wind power areas. Users can interact with it by using a timeslider to explore the changes and select different layers to examine overlaps. 
       </p>
     </div>
@@ -187,8 +187,8 @@
         type: 'fill',
         source: 'nykyiset',
         paint: {
-          'fill-color': '#0a43c9',
-          'fill-opacity': 0.6
+          'fill-color': '#213f85',
+          'fill-opacity': 0.5
         },
         filter: filterYear
       });
@@ -204,6 +204,23 @@
       });
 
       // Add additional layers
+
+      map.addSource('tulevat', {
+        type: 'geojson',
+        data: 'data/tulevat.geojson',
+      });
+      map.addLayer({
+        id: 'tulevat-fill',
+        type: 'fill',
+        source: 'tulevat',
+        paint: {
+          'fill-color': '#e15914',
+          'fill-opacity': 0.5,
+        },
+        layout: {
+            visibility: 'none'
+        }
+      });
 
       map.addSource('kevat', {
         type: 'geojson',
@@ -252,35 +269,18 @@
 
       });
 
-      map.addSource('tulevat', {
-        type: 'geojson',
-        data: 'data/tulevat.geojson',
-      });
-      map.addLayer({
-        id: 'tulevat-fill',
-        type: 'fill',
-        source: 'tulevat',
-        paint: {
-          'fill-color': '#e15914',
-          'fill-opacity': 0.5,
-        },
-        layout: {
-            visibility: 'none'
-        }
-      });
-
     // Move the turbines layer to the top to make it visible above all others
     map.moveLayer('nykyiset');
 
       // Toggle layer visibility
-      const toggleableLayerIds = ['kevat-fill', 'syksy-fill', 'finiba-fill', 'tulevat-fill'];
+      const toggleableLayerIds = ['tulevat-fill', 'kevat-fill', 'syksy-fill', 'finiba-fill'];
 
       for (const id of toggleableLayerIds) {
         const layerNames = {
+          'tulevat-fill': 'Future wind power areas',
           'kevat-fill': 'Spring migration route of cranes',
           'syksy-fill': 'Autumn migration route of cranes',
           'finiba-fill': 'Finnish Important Bird Areas (FINIBA)',
-          'tulevat-fill': 'Future wind power areas'
         };
 
         // Create a container div
