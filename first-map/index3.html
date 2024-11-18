@@ -40,12 +40,13 @@
 
     #console h2 {
         font-size: 16px;  /* Pienennä fontin kokoa halutuksi */
+        font-weight: normal;
     }
 
     #info-button {
       position: absolute;
-      top: 120px;
-      right: 8px;
+      top: 390px;
+      left: 8px;
       background-color: #fff;
       border-radius: 50%;
       width: 30px;
@@ -63,19 +64,20 @@
     #info-box {
       display: none; /* Piilotetaan oletuksena */
       position: absolute;
-      top: 50px;
-      right: 40px;
-      width: 250px;
+      margin: 8px;
+      top: 390px;
+      left: 10px;
+      width: 230px;
       background-color: rgba(255, 255, 255, 0.9);
       padding: 15px;
-      border: 1px solid #ddd;
+      border: 1px solid #ffffff;
       border-radius: 4px;
       z-index: 10;
     }
 
     #info-box p {
       margin: 0;
-      font-size: 14px;
+      font-size: 12px;
       color: #333;
     }
 
@@ -84,7 +86,7 @@
       margin: 10px;
       top: 200px; /* Lasketaan valikko alemmas, ettei se mene liukusäätimen päälle */
       width: 230px;
-      background-color: white;
+      background-color: rgb(255, 255, 255);
       padding: 10px 20px;
       z-index: 1;
       border-radius: 2px;
@@ -108,7 +110,7 @@
 <body>
   <div id="map"></div>
   <div id="console">
-    <h1>Wind Turbine Impact Zones on Cranes</h1>
+    <h1>Wind Turbine Impact on Cranes</h1>
     <p>Current wind turbines</p>
     <div>
       <h2>Year: <label id="active-year">2013</label></h2>
@@ -126,7 +128,6 @@
 
     <div>
         <h2>Layer Visibility</h2>
-        <!-- Checkboxit lisätään tähän JavaScriptillä -->
     </div>
 
     <!-- Info button -->
@@ -136,14 +137,11 @@
     <div id="info-box">
       <h3>About This Map</h3>
       <p>
-          The rapid increase in wind turbines, driven by the global shift towards green energy, supports sustainable energy production but may challenge biodiversity, particularly birdlife. 
-          Cranes, which avoid areas within a 5 km radius of turbines, are notably affected.
-          This map illustrates current and projected areas impacted by wind farms in Finland, highlighting overlaps with crane migration routes and important bird areas (FINIBA). 
-          These overlaps reveal potential conflicts between green energy initiatives and local ecosystems.
+        This web map explores the impact of wind energy production on cranes in Finland. While wind turbines support sustainable energy, they can challenge biodiversity, particularly birdlife. 
+        Cranes avoid areas within 5 km of turbines, making them especially vulnerable. The map shows the current and projected wind power areas, overlaps with crane migration routes, and key bird areas (FINIBA).
       </p>
       <p>
-          The data sources used are openly accessible and cited on the map. The map was created using Mapbox and serves as a tool for policy makers when planning new wind power areas.
-          Users can interact with the map by using the time slider to explore changes over time and selecting different layers to examine the areas of overlap.
+        This map serves a tool for policy makers when planning new wind power areas. Users can interact with it by using a timeslider to explore the changes and select different layers to examine overlaps. 
       </p>
     </div>
 
@@ -152,14 +150,13 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v11', // karttatyyli
-      center: [24.208605, 63.066155],
-      zoom: 5,
+      center: [24.208605, 62.666155],
+      zoom: 5.5,
       attributionControl: true, // Aktivoi attribuutio
       customAttribution: `
-        <a href="https://kartta.paikkatietoikkuna.fi/" target="_blank">MML</a>
+        <a href="https://www.maanmittauslaitos.fi/paikkatiedon-tiedostopalvelu" target="_blank">MML</a>
         | <a href="https://www.birdlife.fi/suojelu/alueet/" target="_blank">Birdlife</a>
         | <a href="https://www.avoindata.fi/data/fi/dataset/maakuntakaavojen-tuulivoimamerkinnat" target="_blank">Lounaistieto</a>
-        | <a href="https://varsinais-suomi.fi/suunnittelu/maakuntakaava/voimassa-oleva-maakuntakaava/tuulivoimavaihemaakuntakaava/" target="_blank">Varsinais-Suomen Liitto</a>
         `
     });
 
@@ -190,8 +187,8 @@
         type: 'fill',
         source: 'nykyiset',
         paint: {
-          'fill-color': '#007cbf',
-          'fill-opacity': 0.5
+          'fill-color': '#0a43c9',
+          'fill-opacity': 0.6
         },
         filter: filterYear
       });
@@ -217,8 +214,8 @@
         type: 'fill',
         source: 'kevat',
         paint: {
-          'fill-color': '#65bd51',
-          'fill-opacity': 0.5,
+          'fill-color': '#f7a74d',
+          'fill-opacity': 0.4,
         },
 
       });
@@ -232,8 +229,8 @@
         type: 'fill',
         source: 'syksy',
         paint: {
-          'fill-color': '#f7a74d',
-          'fill-opacity': 0.5,
+          'fill-color': '#773814',
+          'fill-opacity': 0.3,
         },
         layout: {
             visibility: 'none'
@@ -250,11 +247,9 @@
         source: 'finiba',
         paint: {
           'fill-color': '#0f4720',
-          'fill-opacity': 0.5,
+          'fill-opacity': 0.8,
         },
-        layout: {
-            visibility: 'none'
-        }
+
       });
 
       map.addSource('tulevat', {
@@ -269,6 +264,9 @@
           'fill-color': '#e15914',
           'fill-opacity': 0.5,
         },
+        layout: {
+            visibility: 'none'
+        }
       });
 
     // Move the turbines layer to the top to make it visible above all others
@@ -281,7 +279,7 @@
         const layerNames = {
           'kevat-fill': 'Spring migration route of cranes',
           'syksy-fill': 'Autumn migration route of cranes',
-          'finiba-fill': 'Finnish Important Bird Areas',
+          'finiba-fill': 'Finnish Important Bird Areas (FINIBA)',
           'tulevat-fill': 'Future wind power areas'
         };
 
