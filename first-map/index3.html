@@ -27,7 +27,7 @@
     #console {
       position: absolute;
       margin: 10px;
-      width: 230px;
+      width: 240px;
       background-color: rgba(255, 255, 255, 1);
       padding: 10px 20px;
       z-index: 2; /* Nostetaan z-index korkealle */
@@ -45,9 +45,9 @@
 
     #info-button {
       position: absolute;
-      top: 390px;
+      top: 405px;
       left: 8px;
-      background-color: #fff;
+      background-color: #ffffff;
       border-radius: 50%;
       width: 30px;
       height: 30px;
@@ -65,7 +65,7 @@
       display: none; /* Piilotetaan oletuksena */
       position: absolute;
       margin: 8px;
-      top: 390px;
+      top: 405px;
       left: 10px;
       width: 230px;
       background-color: rgba(255, 255, 255, 0.9);
@@ -84,8 +84,8 @@
     #menu {
       position: absolute;
       margin: 10px;
-      top: 200px; /* Lasketaan valikko alemmas, ettei se mene liukusäätimen päälle */
-      width: 230px;
+      top: 205px; /* Lasketaan valikko alemmas, ettei se mene liukusäätimen päälle */
+      width: 240px;
       background-color: rgb(255, 255, 255);
       padding: 10px 20px;
       z-index: 1;
@@ -97,13 +97,45 @@
     }
 
     #menu input[type="checkbox"] {
-        margin-right: 8px;
+        accent-color: #007cbf; /* Muuttaa valintaruudun väriä */
+        cursor: pointer;
+    }
+
+    #menu label {
+        font-size: 14px;
+        color: #333;
     }
 
     #slider {
       width: 100%; /* Varmistaa, että liukusäädin täyttää tilan */
       margin-top: 10px;
     }
+
+    .layer-item {
+        display: flex;
+        align-items: center; 
+        margin-bottom: 8px; 
+    }
+
+    .layer-item input[type="checkbox"] {
+        margin: 0;              
+        cursor: pointer;     
+        width: 15px; /* Kasvata checkboxin kokoa */
+        height: 15px; /* Kasvata checkboxin kokoa */
+        vertical-align: middle; /* Kohdistaa hieman ylöspäin */
+        position: relative; /* Tarvitaan hienosäätöön */
+        top: -3px; /* Nosta checkboxia hieman ylöspäin */
+    }
+
+    .legend-color {
+        width: 16px; /* Kuvakkeen koko */
+        height: 16px;
+        border-radius: 2px;
+        margin-left: 8px; /* Väli checkboxin ja kuvakkeen välillä */
+        margin-right: 8px; /* Väli kuvakkeen ja tekstin välillä */
+        flex-shrink: 0; /* Estää kuvakkeen kutistumisen */
+    }
+
   </style>
 </head>
 
@@ -135,7 +167,6 @@
 
     <!-- Info box -->
     <div id="info-box">
-      <h3>About This Map</h3>
       <p>
         This web map explores the impact of wind energy production on cranes in Finland. While wind turbines support sustainable energy, they can challenge biodiversity, particularly birdlife. 
         Cranes avoid areas within 5 km of turbines, making them especially vulnerable. The map shows the current and projected wind power areas, overlaps with crane migration routes, and key bird areas (FINIBA).
@@ -150,8 +181,8 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v11', // karttatyyli
-      center: [24.208605, 62.666155],
-      zoom: 5.5,
+      center: [24.208605, 62.866155],
+      zoom: 5.2,
       attributionControl: true, // Aktivoi attribuutio
       customAttribution: `
         <a href="https://www.maanmittauslaitos.fi/paikkatiedon-tiedostopalvelu" target="_blank">MML</a>
@@ -203,8 +234,7 @@
         document.getElementById('active-year').innerText = year;
       });
 
-      // Add additional layers
-
+      // Add other layers
       map.addSource('tulevat', {
         type: 'geojson',
         data: 'data/tulevat.geojson',
@@ -214,7 +244,7 @@
         type: 'fill',
         source: 'tulevat',
         paint: {
-          'fill-color': '#e15914',
+          'fill-color': '#cf4a29',
           'fill-opacity': 0.5,
         },
         layout: {
@@ -275,6 +305,13 @@
       // Toggle layer visibility
       const toggleableLayerIds = ['tulevat-fill', 'kevat-fill', 'syksy-fill', 'finiba-fill'];
 
+      const layerColors = {
+        'tulevat-fill': '#c16e5c',
+        'kevat-fill': '#fbcb99',
+        'syksy-fill': '#b9947b',
+        'finiba-fill': '#0f4720',
+      };
+
       for (const id of toggleableLayerIds) {
         const layerNames = {
           'tulevat-fill': 'Future wind power areas',
@@ -282,12 +319,6 @@
           'syksy-fill': 'Autumn migration route of cranes',
           'finiba-fill': 'Finnish Important Bird Areas (FINIBA)',
         };
-
-        // Create a container div
-        const layerItem = document.createElement('div');
-        layerItem.style.display = 'flex';
-        layerItem.style.alignItems = 'center';
-        layerItem.style.marginBottom = '5px';
 
         // Create the checkbox
         const checkbox = document.createElement('input');
@@ -301,15 +332,23 @@
             map.setLayoutProperty(id, 'visibility', visibility);
         };
 
+        // Luo värikuvake
+        const legendColor = document.createElement('div');
+        legendColor.className = 'legend-color';
+        legendColor.style.backgroundColor = layerColors[id];
+
+
         // Create the label
         const label = document.createElement('label');
         label.textContent = layerNames[id];
         label.htmlFor = id;
-        label.style.marginLeft = '8px';
 
-        // Append checkbox and label to container
-        layerItem.appendChild(checkbox);
-        layerItem.appendChild(label);
+        // Kokoa legend-item
+        const layerItem = document.createElement('div');
+        layerItem.className = 'layer-item';
+        layerItem.appendChild(checkbox); // Lisää värikuvake
+        layerItem.appendChild(legendColor);   // Lisää checkbox
+        layerItem.appendChild(label);      // Lisää teksti
 
         // Append container to the menu
         document.getElementById('menu').appendChild(layerItem);
